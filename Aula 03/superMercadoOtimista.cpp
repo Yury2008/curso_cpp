@@ -9,14 +9,30 @@ int main()
   std::cout << "Informe o dia da semana: ";
   std::cin >> diaSemana;
   std::cin.ignore();
+
+  while(diaSemana != "segunda" && diaSemana != "terça" && diaSemana != "quarta" && diaSemana != "quinta" && diaSemana != "sexta" && diaSemana != "sábado")
+  {
+    std::cout << "Erro. Tente novamente." << std::endl;
+    std::cout << "Informe o dia da semana: ";
+    std::cin >> diaSemana;
+    std::cin.ignore();
+  }
   
   std::cout << "Informe o preço do produto: ";
   std::cin >> precoProduto;
   std::cin.ignore();
   
-  std::cout << "Informe a opção do produto: ";
+  std::cout << "Informe o tipo do produto(ouro/prata): ";
   std::cin >> tipoProduto;
   std::cin.ignore();
+
+  while(tipoProduto != "ouro" && tipoProduto != "prata")
+  {
+    std::cout << "Erro. Tente novamente." << std::endl;
+    std::cout << "Informe o tipo do produto(ouro/prata): ";
+    std::cin >> tipoProduto;
+    std::cin.ignore();
+  }
   
   std::cout << "Informe o nome do produto: ";
   std::cin >> nomeProduto;

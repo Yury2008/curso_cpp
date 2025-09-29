@@ -2,6 +2,8 @@
 #include <vector>
 #include <algorithm>
 #include <cctype>
+#include <fstream>
+#include <sstream>
 
 class Livro
 {
@@ -49,17 +51,19 @@ protected:
 int dia;
 int mes;
 int ano;
-float avaliacao;
+int avaliacao;
 int qtdLeituras;
+int qtdTotalLeituras;
 
 public:
-livroLido(int dia, int mes, int ano, float avaliacao, int qtdLeituras)
+livroLido(int dia, int mes, int ano, int avaliacao, int qtdLeituras, int qtdTotalLeituras)
 {
   this->dia = dia;
   this->mes = mes;
   this->ano = ano;
   this->avaliacao = avaliacao;
   this->qtdLeituras = qtdLeituras;
+  this->qtdTotalLeituras = qtdTotalLeituras;
 }
 
 livroLido()
@@ -69,19 +73,22 @@ livroLido()
   ano = 0;
   avaliacao = 0;
   qtdLeituras = 0;
+  qtdTotalLeituras = 0;
 }
 
 void setDia(int dia) {this->dia = dia;}
 void setMes(int mes) {this->mes = mes;}
 void setAno(int ano) {this->ano = ano;}
-void setAvaliacao(float avaliacao) {this->avaliacao = avaliacao;}
+void setAvaliacao(int avaliacao) {this->avaliacao = avaliacao;}
 void setQtdLeituras(int qtdLeituras) {this->qtdLeituras = qtdLeituras;}
+void setQtdTotalLeituras(int qtdTotalLeituras) {this->qtdTotalLeituras = qtdTotalLeituras;}
 
 int getDia() {return dia;}
 int getMes() {return mes;}
 int getAno() {return ano;}
 float getAvaliacao() {return avaliacao;}
 int getQtdLeituras() {return qtdLeituras;}
+int getQtdTotalLeituras() {return qtdTotalLeituras;}
 };
 
 class Biblioteca : public Livro , public livroLido 
@@ -91,7 +98,7 @@ void mostrarLivro()
 {
   std::cout << "Livro: " << nomeLivro << std::endl;
   std::cout << "Autor: " << autor << std::endl;
-  std::cout << qtdPaginas << " páginas" << std::endl;
+  std::cout << qtdPaginas << " PÁGINAS" << std::endl;
   std::cout << "Gênero: " << genero << std::endl;
   std::cout << "Preço: R$" << preco << std::endl;
 }
@@ -109,20 +116,24 @@ void adicionarLivros(std::vector<Biblioteca>& livros);
 void listarPor(std::vector<Biblioteca>& livros);
 void atualizarLeitura(std::vector<Biblioteca>& livros);
 void estatisticasBiblioteca(std::vector<Biblioteca>& livros);
+void salvarDados(std::vector<Biblioteca>& livros);
+void carregarDados(std::vector<Biblioteca>& livros);
 
 int main()
 {
   std::vector<Biblioteca> livros;
   int opcao;
+  carregarDados(livros);
 
-  while (true)
+  while (opcao != 5)
   {  
-    std::cout << "--------------- BIBLIOTECA ---------------" << std::endl;
+    std::cout << "---------- BIBLIOTECA ----------" << std::endl;
     std::cout << "1 - Adicionar livro" << std::endl;
     std::cout << "2 - Listar por..." << std::endl;
     std::cout << "3 - Atualizar leitura" << std::endl;
     std::cout << "4 - Estatísticas" << std::endl;
-    std::cout << "------------------------------------------" << std::endl;
+    std::cout << "5 - Sair" << std::endl;
+    std::cout << "--------------------------------" << std::endl;
     std::cout << "Escolha uma opcao: ";
     std::cin >> opcao;
     std::cout << std::endl;
@@ -134,8 +145,12 @@ int main()
       case 2: listarPor(livros); break;
       case 3: atualizarLeitura(livros); break;
       case 4: estatisticasBiblioteca(livros); break;
+      case 5: std::cout << "Saindo..." << std::endl; break;
     }
   }
+
+  salvarDados(livros);
+  
   return 0;
 }
 
@@ -222,7 +237,35 @@ void listarLivrosLido(std::vector<Biblioteca>& livros)
     }
   }
 
-  if(encontrou == 0) std::cout << "Não encontrado" << std::endl << std::endl;
+  if(encontrou == 0) std::cout << "Não tem leituras realizadas" << std::endl << std::endl;
+}
+
+void listarFavoritos(std::vector<Biblioteca>& livros)
+{
+  int temp_MaiorAvaliação = 0, encontrou = 0;
+
+  for(auto &livro : livros)
+  {
+    int temp_avaliacao = livro.getAvaliacao(), temp_qtdLeituras = livro.getQtdLeituras();
+    if((temp_qtdLeituras > 0) && (temp_avaliacao > temp_MaiorAvaliação)) temp_MaiorAvaliação = temp_avaliacao; encontrou++;
+  }
+
+  if(encontrou != 0)
+  {
+    for(auto &livro : livros)
+    {
+      int temp_avaliacao = livro.getAvaliacao();
+      if(temp_avaliacao == temp_MaiorAvaliação)
+      {
+        std::cout << "Livro: " << livro.getLivro() << std::endl;
+        std::cout << "Autor: " << livro.getAutor() << std::endl;
+        std::cout << "Avaliação: (" << temp_MaiorAvaliação << "/5)" << std::endl;
+        std::cout << "-------------------------------------" << std::endl << std::endl;
+      }
+    }
+  }
+
+  else std::cout << "Não tem leituras realizadas" << std::endl << std::endl;
 }
 
 void MaisCaroMaisBarato(std::vector<Biblioteca>& livros)
@@ -233,7 +276,7 @@ void MaisCaroMaisBarato(std::vector<Biblioteca>& livros)
     return;
   }
   
-  float max = 0, min = 0;
+  float max = 0, min;
   
   for(auto &livro : livros)
   {
@@ -272,6 +315,53 @@ void MaisCaroMaisBarato(std::vector<Biblioteca>& livros)
   }
 }
 
+void MenorLivroMaiorLivro(std::vector<Biblioteca>& livros)
+{
+  if(livros.empty())
+  {
+    std::cout << "Não tem livros cadastrados";
+    return;
+  }
+  
+  int maiorLivro = 0, menorLivro;
+
+  for(auto &livro : livros)
+  {
+    int temp_qtdPaginas = livro.getPaginas();
+    if(temp_qtdPaginas > maiorLivro) maiorLivro = temp_qtdPaginas;
+  }
+  for(auto &livro : livros)
+  {
+    int temp_qtdPaginas = livro.getPaginas();
+    if(temp_qtdPaginas == maiorLivro)
+    {
+      std::cout << "Maior livro:" << std::endl;
+      std::cout << "Livro: " << livro.getLivro() << std::endl;
+      std::cout << "Autor: " << livro.getAutor() << std::endl;
+      std::cout << "Páginas: " << maiorLivro << std::endl << std::endl;
+    }
+  }
+
+  menorLivro = maiorLivro;
+
+  for(auto &livro : livros)
+  {
+    int temp_qtdPaginas = livro.getPaginas();
+    if(temp_qtdPaginas < menorLivro) menorLivro = temp_qtdPaginas;
+  }
+  for(auto &livro : livros)
+  {
+    int temp_qtdPaginas = livro.getPaginas();
+    if(temp_qtdPaginas == menorLivro)
+    {
+      std::cout << "Menor livro:" << std::endl;
+      std::cout << "Livro: " << livro.getLivro() << std::endl;
+      std::cout << "Autor: " << livro.getAutor() << std::endl;
+      std::cout << "Páginas: " << menorLivro << std::endl;
+    }
+  }
+}
+
 void totalLeitura(std::vector<Biblioteca>& livros)
 {
   int total = 0;
@@ -279,7 +369,7 @@ void totalLeitura(std::vector<Biblioteca>& livros)
 
   for(auto &livro : livros)
   {
-    int temp_livros = livro.getQtdLeituras();
+    int temp_livros = livro.getQtdTotalLeituras();
     total += temp_livros;
   }
 
@@ -392,6 +482,7 @@ void listarPor(std::vector<Biblioteca>& livros)
     case 2: listarPorGenero(livros); break;
     case 3: listarPorAutor(livros); break;
     case 4: listarLivrosLido(livros); break;
+    case 5: listarFavoritos(livros); break;
     default: std::cout << "Opção inválida"; break;
   }
 }
@@ -411,27 +502,64 @@ void atualizarLeitura(std::vector<Biblioteca>& livros)
 
     if(temp_livro == findLivro)
     {
-      int temp_dia, temp_mes, temp_ano;
-      float temp_avaliacao;
+      int temp_dia, temp_mes, temp_ano, temp_avaliacao;
 
       std::cout << "--------------- ATUALIZAÇÃO ---------------" << std::endl;
       std::cout << "Insira o dia: ";
       std::cin >> temp_dia;
-      std::cout << "Insira o mês: ";
+      while(temp_dia < 0 || temp_dia > 30)
+      {
+        std::cout << std::endl << "É aceito apenas entre os dias 1 a 30" << std::endl;
+        std::cout << "Insira o dia: ";
+        std::cin >> temp_dia;
+      }
+      std::cout << std::endl << "Insira o mês: ";
       std::cin >> temp_mes;
-      std::cout << "Insira o ano: ";
+      while(temp_mes < 0 || temp_mes > 12)
+      {
+        std::cout << std::endl << "Existem apenas 12 meses" << std::endl;
+        std::cout << "Insira o mês: ";
+        std::cin >> temp_mes;
+      }
+      std::cout << std::endl << "Insira o ano: ";
       std::cin >> temp_ano;
-      std::cout << "Insira a avaliação: ";
+      while(temp_ano > 2025 || temp_ano < 2025)
+      {
+        std::cout << std::endl << "Estamos em 2025" << std::endl;
+        std::cout << "Insira o ano: ";
+        std::cin >> temp_ano;
+      }
+      std::cout << std::endl << "Insira a avaliação: ";
       std::cin >> temp_avaliacao;
+      while(temp_avaliacao > 5 || temp_avaliacao < 0)
+      {
+        std::cout << std::endl << "A avaliação é apenas de 0 a 5" << std::endl;
+        std::cout << "Insira a avaliação: ";
+        std::cin >> temp_avaliacao;
+      }
       std::cout << "-------------------------------------------" << std::endl;
 
-      livro.setDia(temp_dia);
-      livro.setMes(temp_mes);
-      livro.setAno(temp_ano);
-      livro.setAvaliacao(temp_avaliacao);
-      livro.setQtdLeituras(livro.getQtdLeituras() + 1);
+      int temp_qtdLeituras = livro.getQtdLeituras();
+      
+      if(temp_qtdLeituras == 1)
+      {
+        livro.setDia(temp_dia);
+        livro.setMes(temp_mes);
+        livro.setAno(temp_ano);
+        livro.setAvaliacao(temp_avaliacao);
+        livro.setQtdLeituras(livro.getQtdLeituras() + 1);
+      }
 
-      livros.push_back(livro);
+      else
+      {
+        livro.setDia(temp_dia);
+        livro.setMes(temp_mes);
+        livro.setAno(temp_ano);
+        livro.setAvaliacao(temp_avaliacao);
+        livro.setQtdLeituras(livro.getQtdLeituras() + 1);
+        livro.setQtdTotalLeituras(livro.getQtdTotalLeituras() + 1);
+      }
+      
       std::cout << "Leitura atualizada com sucesso!" << std::endl << std::endl;
       encontrou++;
     }
@@ -447,4 +575,81 @@ void estatisticasBiblioteca(std::vector<Biblioteca>& livros)
   totalLeitura(livros);
   totalGasto(livros);
   MaisCaroMaisBarato(livros);
+  MenorLivroMaiorLivro(livros);
+  std::cout << "-------------------------------------------" << std::endl << std::endl;
+}
+
+void salvarDados(std::vector<Biblioteca>& livros) 
+{
+    std::ofstream arquivo("biblioteca.txt");
+    if (!arquivo) {
+        std::cout << "Erro ao abrir o arquivo para salvar dados." << std::endl;
+        return;
+    }
+
+    for (auto &livro : livros) {
+        arquivo << livro.getLivro() << ";"
+                << livro.getAutor() << ";"
+                << livro.getGenero() << ";"
+                << livro.getPaginas() << ";"
+                << livro.getPreco() << ";"
+                << livro.getDia() << ";"
+                << livro.getMes() << ";"
+                << livro.getAno() << ";"
+                << livro.getAvaliacao() << ";"
+                << livro.getQtdLeituras() << ";"
+                << livro.getQtdTotalLeituras() << "\n";
+    }
+
+    arquivo.close();
+    std::cout << "Dados salvos com sucesso!" << std::endl;
+}
+
+void carregarDados(std::vector<Biblioteca>& livros) 
+{
+    std::ifstream arquivo("biblioteca.txt");
+    if (!arquivo) {
+        std::cout << "Arquivo não encontrado, iniciando biblioteca vazia." << std::endl;
+        return;
+    }
+
+    livros.clear();
+    std::string linha;
+    while (std::getline(arquivo, linha)) {
+        std::stringstream ss(linha);
+        std::string temp_livro, temp_autor, temp_genero, temp;
+        int temp_paginas, temp_dia, temp_mes, temp_ano, temp_qtdLeituras, temp_qtdTotalLeituras;
+        float temp_preco, temp_avaliacao;
+
+        std::getline(ss, temp_livro, ';');
+        std::getline(ss, temp_autor, ';');
+        std::getline(ss, temp_genero, ';');
+
+        std::getline(ss, temp, ';'); temp_paginas = std::stoi(temp);
+        std::getline(ss, temp, ';'); temp_preco = std::stof(temp);
+        std::getline(ss, temp, ';'); temp_dia = std::stoi(temp);
+        std::getline(ss, temp, ';'); temp_mes = std::stoi(temp);
+        std::getline(ss, temp, ';'); temp_ano = std::stoi(temp);
+        std::getline(ss, temp, ';'); temp_avaliacao = std::stof(temp);
+        std::getline(ss, temp, ';'); temp_qtdLeituras = std::stoi(temp);
+        std::getline(ss, temp); temp_qtdTotalLeituras = std::stoi(temp);
+
+        Biblioteca livro;
+        livro.setLivro(temp_livro);
+        livro.setAutor(temp_autor);
+        livro.setGenero(temp_genero);
+        livro.setPaginas(temp_paginas);
+        livro.setPreco(temp_preco);
+        livro.setDia(temp_dia);
+        livro.setMes(temp_mes);
+        livro.setAno(temp_ano);
+        livro.setAvaliacao(temp_avaliacao);
+        livro.setQtdLeituras(temp_qtdLeituras);
+        livro.setQtdTotalLeituras(temp_qtdTotalLeituras);
+
+        livros.push_back(livro);
+    }
+
+    arquivo.close();
+    std::cout << "Dados carregados com sucesso!" << std::endl;
 }

@@ -593,7 +593,8 @@ void deletarLivro(std::vector<Biblioteca>& livros)
 
   findLivro = paraMaiusculo(findLivro);
 
-  auto it = std::remove_if(livros.begin(), livros.end(), [&](Biblioteca& l){
+  auto it = std::remove_if(livros.begin(), livros.end(), [&](Biblioteca& l)
+  {
       return paraMaiusculo(l.getLivro()) == findLivro;
   });
 
@@ -612,7 +613,8 @@ void deletarLivro(std::vector<Biblioteca>& livros)
 void salvarDados(std::vector<Biblioteca>& livros) 
 {
     std::ofstream arquivo("biblioteca.txt");
-    if (!arquivo) {
+    if (!arquivo) 
+    {
         std::cout << "Erro ao abrir o arquivo para salvar dados." << std::endl;
         return;
     }
@@ -628,7 +630,8 @@ void salvarDados(std::vector<Biblioteca>& livros)
               << livro.getMes() << ";"
               << livro.getAno() << ";"
               << livro.getAvaliacao() << ";"
-              << livro.getQtdLeituras() << ";";
+              << livro.getQtdLeituras() << ";"
+              << livro.getQtdTotalLeituras() << ";";
     }
 
     arquivo.close();
@@ -638,9 +641,10 @@ void salvarDados(std::vector<Biblioteca>& livros)
 void carregarDados(std::vector<Biblioteca>& livros) 
 {
     std::ifstream arquivo("biblioteca.txt");
-    if (!arquivo) {
-        std::cout << "Arquivo não encontrado, iniciando biblioteca vazia." << std::endl;
-        return;
+    if (!arquivo) 
+    {
+      std::cout << "Arquivo não encontrado, iniciando biblioteca vazia." << std::endl;
+      return;
     }
 
     livros.clear();

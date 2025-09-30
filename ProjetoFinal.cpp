@@ -45,7 +45,7 @@ std::string getGenero() {return genero;}
 float getPreco() {return preco;}
 };
 
-class livroLido
+class Biblioteca : public Livro
 {
 protected:
 int dia;
@@ -56,7 +56,7 @@ int qtdLeituras;
 int qtdTotalLeituras;
 
 public:
-livroLido(int dia, int mes, int ano, int avaliacao, int qtdLeituras, int qtdTotalLeituras)
+Biblioteca(std::string autor, std::string nomeLivro, float preco, std::string genero, int qtdPaginas, int dia, int mes, int ano, int avaliacao, int qtdLeituras, int qtdTotalLeituras) : Livro(autor, nomeLivro, preco, genero, qtdPaginas)
 {
   this->dia = dia;
   this->mes = mes;
@@ -66,7 +66,7 @@ livroLido(int dia, int mes, int ano, int avaliacao, int qtdLeituras, int qtdTota
   this->qtdTotalLeituras = qtdTotalLeituras;
 }
 
-livroLido()
+Biblioteca()
 {
   dia = 0;
   mes = 0;
@@ -89,11 +89,7 @@ int getAno() {return ano;}
 float getAvaliacao() {return avaliacao;}
 int getQtdLeituras() {return qtdLeituras;}
 int getQtdTotalLeituras() {return qtdTotalLeituras;}
-};
 
-class Biblioteca : public Livro , public livroLido 
-{
-public:
 void mostrarLivro()
 {
   std::cout << "Livro: " << nomeLivro << std::endl;
@@ -116,23 +112,26 @@ void adicionarLivros(std::vector<Biblioteca>& livros);
 void listarPor(std::vector<Biblioteca>& livros);
 void atualizarLeitura(std::vector<Biblioteca>& livros);
 void estatisticasBiblioteca(std::vector<Biblioteca>& livros);
+void deletarLivro(std::vector<Biblioteca>& livros);
 void salvarDados(std::vector<Biblioteca>& livros);
 void carregarDados(std::vector<Biblioteca>& livros);
 
 int main()
 {
   std::vector<Biblioteca> livros;
-  int opcao;
+  int opcao = 0;
+  
   carregarDados(livros);
 
-  while (opcao != 5)
+  while (opcao != 6)
   {  
     std::cout << "---------- BIBLIOTECA ----------" << std::endl;
     std::cout << "1 - Adicionar livro" << std::endl;
     std::cout << "2 - Listar por..." << std::endl;
     std::cout << "3 - Atualizar leitura" << std::endl;
     std::cout << "4 - Estatísticas" << std::endl;
-    std::cout << "5 - Sair" << std::endl;
+    std::cout << "5 - Deletar" << std::endl;
+    std::cout << "6 - Sair" << std::endl;
     std::cout << "--------------------------------" << std::endl;
     std::cout << "Escolha uma opcao: ";
     std::cin >> opcao;
@@ -145,7 +144,9 @@ int main()
       case 2: listarPor(livros); break;
       case 3: atualizarLeitura(livros); break;
       case 4: estatisticasBiblioteca(livros); break;
-      case 5: std::cout << "Saindo..." << std::endl; break;
+      case 5: deletarLivro(livros); break;
+      case 6: std::cout << "Saindo..." << std::endl; break;
+      default: std::cout << "Opção inválida" << std::endl; break;
     }
   }
 
@@ -175,18 +176,15 @@ void listarTudo(std::vector<Biblioteca>& livros)
 void listarPorAutor(std::vector<Biblioteca>& livros)
 {
   std::string findAutor;
-  int encontrou = 0;
-
   std::cout << "Insira o nome do autor: ";
   std::getline(std::cin, findAutor);
   findAutor = paraMaiusculo(findAutor);
   std::cout << std::endl;
 
+  int encontrou = 0;
   for (auto &livro : livros)
   {
-    std::string temp_Autor = paraMaiusculo(livro.getAutor());
-
-    if (temp_Autor == findAutor)
+    if (paraMaiusculo(livro.getAutor()) == findAutor)
     {
       livro.mostrarLivro();
       std::cout << "-------------------------" << std::endl << std::endl;
@@ -194,24 +192,21 @@ void listarPorAutor(std::vector<Biblioteca>& livros)
     }
   }
 
-  if(encontrou == 0) std::cout << "Não encontrado" << std::endl << std::endl;
+  if (encontrou == 0) std::cout << "Autor não encontrado." << std::endl << std::endl;
 }
 
 void listarPorGenero(std::vector<Biblioteca>& livros)
 {
   std::string findGenero;
-  int encontrou = 0;
-
   std::cout << "Insira o gênero: ";
   std::getline(std::cin, findGenero);
   findGenero = paraMaiusculo(findGenero);
   std::cout << std::endl;
 
+  int encontrou = 0;
   for (auto &livro : livros)
   {
-    std::string temp_Genero = paraMaiusculo(livro.getGenero());
-
-    if (temp_Genero == findGenero)
+    if (paraMaiusculo(livro.getGenero()) == findGenero)
     {
       livro.mostrarLivro();
       std::cout << "-------------------------" << std::endl << std::endl;
@@ -219,7 +214,7 @@ void listarPorGenero(std::vector<Biblioteca>& livros)
     }
   }
 
-  if (encontrou == 0) std::cout << "Não encontrado" << std::endl << std::endl;
+  if (encontrou == 0) std::cout << "Gênero não encontrado." << std::endl << std::endl;
 }
 
 void listarLivrosLido(std::vector<Biblioteca>& livros)
@@ -373,7 +368,7 @@ void totalLeitura(std::vector<Biblioteca>& livros)
     total += temp_livros;
   }
 
-  porcentagem = (total * 100) / livros.size();
+  porcentagem = (float(total) * 100) / livros.size();
 
   std::cout << "Total de livros lidos: " << total << std::endl;
   std::cout << porcentagem << "% dos livros foram lidos" << std::endl;
@@ -385,7 +380,7 @@ void totalGasto(std::vector<Biblioteca>& livros)
   
   for(auto &livro : livros)
   {
-    int temp_gasto = livro.getPreco();
+    float temp_gasto = livro.getPreco();
     totalGasto += temp_gasto;
   }
 
@@ -403,7 +398,11 @@ void livroMaisLido(std::vector<Biblioteca>& livros)
     if(maxLeituras > 0) encontrou++;;
   }
 
-  if(encontrou == 0) std::cout << "Não tem livros lidos" << std::endl << std::endl; return;
+  if(encontrou == 0) 
+  {
+      std::cout << "Não tem livros lidos" << std::endl << std::endl;
+      return;
+  }
 
   for(auto &livro : livros)
   {
@@ -523,10 +522,9 @@ void atualizarLeitura(std::vector<Biblioteca>& livros)
       }
       std::cout << std::endl << "Insira o ano: ";
       std::cin >> temp_ano;
-      while(temp_ano > 2025 || temp_ano < 2025)
+      while(temp_ano < 0)
       {
-        std::cout << std::endl << "Estamos em 2025" << std::endl;
-        std::cout << "Insira o ano: ";
+        std::cout << "Ano inválido, insira novamente: ";
         std::cin >> temp_ano;
       }
       std::cout << std::endl << "Insira a avaliação: ";
@@ -579,6 +577,38 @@ void estatisticasBiblioteca(std::vector<Biblioteca>& livros)
   std::cout << "-------------------------------------------" << std::endl << std::endl;
 }
 
+void deletarLivro(std::vector<Biblioteca>& livros)
+{
+  if (livros.empty()) 
+  {
+    std::cout << "Não tem livros cadastrados para excluir." << std::endl << std::endl;
+    return;
+  }
+
+  std::string findLivro;
+  std::cout << "Insira o nome do livro a ser deletado: ";
+  std::getline(std::cin, findLivro);
+
+  if (findLivro.empty()) std::getline(std::cin, findLivro);
+
+  findLivro = paraMaiusculo(findLivro);
+
+  auto it = std::remove_if(livros.begin(), livros.end(), [&](Biblioteca& l){
+      return paraMaiusculo(l.getLivro()) == findLivro;
+  });
+
+  if (it != livros.end()) 
+  {
+    livros.erase(it, livros.end());
+    std::cout << "Livro(s) deletado(s) com sucesso!" << std::endl << std::endl;
+  } 
+  
+  else 
+  {
+    std::cout << "Livro não encontrado!" << std::endl << std::endl;
+  }
+}
+
 void salvarDados(std::vector<Biblioteca>& livros) 
 {
     std::ofstream arquivo("biblioteca.txt");
@@ -587,18 +617,18 @@ void salvarDados(std::vector<Biblioteca>& livros)
         return;
     }
 
-    for (auto &livro : livros) {
-        arquivo << livro.getLivro() << ";"
-                << livro.getAutor() << ";"
-                << livro.getGenero() << ";"
-                << livro.getPaginas() << ";"
-                << livro.getPreco() << ";"
-                << livro.getDia() << ";"
-                << livro.getMes() << ";"
-                << livro.getAno() << ";"
-                << livro.getAvaliacao() << ";"
-                << livro.getQtdLeituras() << ";"
-                << livro.getQtdTotalLeituras() << "\n";
+    for (auto &livro : livros) 
+    {
+      arquivo << livro.getLivro() << ";"
+              << livro.getAutor() << ";"
+              << livro.getGenero() << ";"
+              << livro.getPaginas() << ";"
+              << livro.getPreco() << ";"
+              << livro.getDia() << ";"
+              << livro.getMes() << ";"
+              << livro.getAno() << ";"
+              << livro.getAvaliacao() << ";"
+              << livro.getQtdLeituras() << ";";
     }
 
     arquivo.close();

@@ -372,7 +372,7 @@ void totalLeitura(std::vector<Biblioteca>& livros)
   std::cout << porcentagem << "% dos livros foram lidos" << std::endl;
 }
 
-void totalGasto(std::vector<Biblioteca>& livros)
+void totalGastoMedia(std::vector<Biblioteca>& livros)
 {
   float totalGasto = 0;
   
@@ -382,7 +382,8 @@ void totalGasto(std::vector<Biblioteca>& livros)
     totalGasto += temp_gasto;
   }
 
-  std::cout << "Total gasto: R$" << totalGasto << std::endl << std::endl;
+  std::cout << "Total gasto: R$" << totalGasto << std::endl;
+  std::cout << "Média: R$" << totalGasto / livros.size() << std::endl << std::endl;
 }
 
 void livroMaisLido(std::vector<Biblioteca>& livros)
@@ -569,7 +570,7 @@ void estatisticasBiblioteca(std::vector<Biblioteca>& livros)
   std::cout << "--------------- ESTATÍSTICA ---------------" << std::endl;
   std::cout << "Quantidade de livros: " << livros.size() << std::endl;
   totalLeitura(livros);
-  totalGasto(livros);
+  totalGastoMedia(livros);
   MaisCaroMaisBarato(livros);
   MenorLivroMaiorLivro(livros);
   std::cout << "-------------------------------------------" << std::endl << std::endl;
